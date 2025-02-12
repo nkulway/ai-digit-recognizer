@@ -1,0 +1,12 @@
+## VS Code ##
+.vscode/
+node_modules/
+
+# OS metadata
+.DS_Store
+
+# API keys and secrets
+.env*
+
+# Compiled files
+lib/
