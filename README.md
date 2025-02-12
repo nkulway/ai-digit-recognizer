@@ -1,2 +1,2 @@
-# digit-recognizer
-# digit-recognizer
+# AI Digit Recognizer
+A full-stack application that uses artificial intelligence to recognize handwritten digits. The frontend is built with React and TypeScript using TensorFlow.js to capture and preprocess user drawings, and the backend is built with Node.js, TypeScript, and TensorFlow to train and run a convolutional neural network (CNN) on the MNIST dataset.
