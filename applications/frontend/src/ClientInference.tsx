@@ -76,10 +76,10 @@ const ClientInference: React.FC = () => {
       </p>
       {loading && <p>Processing...</p>}
       {error && <p style={{ color: 'red' }}>{error}</p>}
-      <Canvas onDrawEnd={handleDrawEnd} />
+      <Canvas onDrawEnd={handleDrawEnd} onClear={() => setPrediction(null)} />
       <p style={{ fontSize: '1.5rem' }}>
         Prediction:{' '}
-        {prediction !== null ? prediction : 'Draw a digit to see prediction!'}
+        {prediction !== null ? prediction : 'Draw a digit to see a prediction!'}
       </p>
     </div>
   )
