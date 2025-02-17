@@ -8,7 +8,10 @@
     },
     {
       "src": "applications/backend/src/server.ts",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": "node_modules/@tensorflow/tfjs-node/**"
+      }
     }
   ],
   "routes": [
@@ -20,10 +23,5 @@
       "src": "/(.*)",
       "dest": "applications/frontend/build/$1"
     }
-  ],
-  "functions": {
-    "api/**.js": {
-      "includeFiles": "node_modules/@tensorflow/tfjs-node/**"
-    }
-  }
+  ]
 }
