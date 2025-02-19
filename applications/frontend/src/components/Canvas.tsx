@@ -25,9 +25,15 @@ const Canvas: React.FC<CanvasProps> = ({ onDrawEnd }) => {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+<<<<<<< Updated upstream
     ctx.lineWidth = 15;
     ctx.lineCap = "round";
     ctx.strokeStyle = "white";
+=======
+    ctx.lineWidth = 10
+    ctx.lineCap = 'round'
+    ctx.strokeStyle = 'white'
+>>>>>>> Stashed changes
 
     const { offsetX, offsetY } = e.nativeEvent;
     ctx.beginPath();
