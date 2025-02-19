@@ -37,7 +37,7 @@ async function computeGradCAM(
     const restModel = tf.model({ inputs: newInput, outputs: x })
 
     // Compute full model predictions (for target class determination).
-    const predictions = model.predict(inputTensor) as tf.Tensor
+    const predictions = getPredictions(model, inputTensor)
     const targetClass =
       classIndex !== undefined
         ? classIndex
@@ -64,6 +64,10 @@ async function computeGradCAM(
     }
     return heatmap.squeeze() as tf.Tensor2D
   })
+}
+
+const getPredictions = (model: tf.LayersModel, inputTensor: tf.Tensor4D) => {
+  return model.predict(inputTensor) as tf.Tensor
 }
 
 // Helper function to convert a heatmap tensor to a data URL using an offscreen canvas.
@@ -97,6 +101,7 @@ const GradCAMVisualization: React.FC<{ targetLayer: string }> = ({
 }) => {
   const [model, setModel] = useState<tf.LayersModel | null>(null)
   const [heatmapUrl, setHeatmapUrl] = useState<string | null>(null)
+  const [prediction, setPrediction] = useState<number | null>(null)
 
   // Load the model when the component mounts.
   useEffect(() => {
@@ -113,23 +118,38 @@ const GradCAMVisualization: React.FC<{ targetLayer: string }> = ({
 
   const handleDrawEnd = async (canvas: HTMLCanvasElement) => {
     if (!model) return
-    // Preprocess the canvas drawing to a tensor.
-    const tensor = tf.browser
-      .fromPixels(canvas, 1)
-      .resizeNearestNeighbor([28, 28])
-      .toFloat()
-      .expandDims(0)
-      .div(255.0) as tf.Tensor4D
 
-    try {
-      // Compute the Grad-CAM heatmap.
-      const heatmap = await computeGradCAM(model, tensor, targetLayer)
-      // Convert the heatmap to a data URL for display.
-      const url = await convertHeatmapToDataURL(heatmap, 28, 28)
-      setHeatmapUrl(url)
-    } catch (error) {
-      console.error('Grad-CAM error:', error)
-    }
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        return
+      }
+
+      // Create an image element from the blob so we can use tf.browser.fromPixels
+      const img = new Image()
+      img.src = URL.createObjectURL(blob)
+      img.onload = async () => {
+        try {
+          // Preprocess the canvas drawing to a tensor.
+          const tensor = tf.browser
+            .fromPixels(canvas, 1)
+            .resizeNearestNeighbor([28, 28])
+            .toFloat()
+            .expandDims(0)
+            .div(255.0) as tf.Tensor4D
+
+          // Compute the Grad-CAM heatmap.
+          const heatmap = await computeGradCAM(model, tensor, targetLayer)
+          // Convert the heatmap to a data URL for display.
+          const url = await convertHeatmapToDataURL(heatmap, 28, 28)
+          setHeatmapUrl(url)
+          const predictions = getPredictions(model, tensor)
+          const prediction = predictions.argMax(1).dataSync()[0]
+          setPrediction(prediction)
+        } catch (error) {
+          console.error('Grad-CAM error:', error)
+        }
+      }
+    })
   }
 
   return (
@@ -141,9 +161,21 @@ const GradCAMVisualization: React.FC<{ targetLayer: string }> = ({
         <p>Model loaded, draw to visualize Grad-CAM.</p>
       )}
       <Canvas onDrawEnd={handleDrawEnd} onClear={() => setHeatmapUrl(null)} />
+      <p style={{ fontSize: '1.5rem' }}>
+        What the model thinks your digit is:{' '}
+        {prediction !== null ? prediction : 'Draw a digit to see a prediction!'}
+      </p>
       {heatmapUrl && (
         <div>
           <h2>Heatmap Overlay</h2>
+          {prediction && (
+            <p>
+              <i>
+                (Does this heatmap look like the number {prediction}? Not too
+                accurate, huh?)
+              </i>
+            </p>
+          )}
           <img
             src={heatmapUrl}
             alt="Grad-CAM Heatmap"
