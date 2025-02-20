@@ -34,7 +34,7 @@ const Canvas: React.FC<CanvasProps> = ({ onDrawEnd, onClear }) => {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    ctx.lineWidth = 15
+    ctx.lineWidth = 10
     ctx.lineCap = 'round'
     ctx.strokeStyle = 'white'
 
